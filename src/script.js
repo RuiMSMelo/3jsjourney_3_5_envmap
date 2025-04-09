@@ -2,12 +2,15 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import GUI from "lil-gui";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { backgroundBlurriness } from "three/tsl";
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 
 /**
  * Loaders
  */
 const gltfLoader = new GLTFLoader();
 const cubeTextureLoader = new THREE.CubeTextureLoader();
+const rgbeLoader = new RGBELoader();
 
 /**
  * Base
@@ -24,20 +27,49 @@ const scene = new THREE.Scene();
 /**
  * Environment map
  */
+scene.environmentIntensity = 1;
+scene.backgroundBlurriness = 0;
+scene.backgroundIntensity = 1;
+gui.add(scene, "environmentIntensity").min(0).max(10).step(0.001);
+gui.add(scene, "backgroundBlurriness").min(0).max(1).step(0.001);
+gui.add(scene, "backgroundIntensity").min(0).max(10).step(0.001);
+gui
+  .add(scene.backgroundRotation, "y")
+  .min(0)
+  .max(Math.PI * 2)
+  .step(0.001)
+  .name("backgroundRotation Y");
+gui
+  .add(scene.environmentRotation, "y")
+  .min(0)
+  .max(Math.PI * 2)
+  .step(0.001)
+  .name("environmentRotation Y");
+
 // LDR Cube Texture
-const environmentMap = cubeTextureLoader.load([
-  "/environmentMaps/0/px.png",
-  "/environmentMaps/0/nx.png",
-  "/environmentMaps/0/py.png",
-  "/environmentMaps/0/ny.png",
-  "/environmentMaps/0/pz.png",
-  "/environmentMaps/0/nz.png",
-]);
+// const environmentMap = cubeTextureLoader.load([
+//   "/environmentMaps/0/px.png",
+//   "/environmentMaps/0/nx.png",
+//   "/environmentMaps/0/py.png",
+//   "/environmentMaps/0/ny.png",
+//   "/environmentMaps/0/pz.png",
+//   "/environmentMaps/0/nz.png",
+// ]);
 
-console.log(environmentMap);
+// console.log(environmentMap);
 
-scene.environment = environmentMap;
-scene.background = environmentMap;
+// scene.environment = environmentMap;
+// scene.background = environmentMap;
+
+// HDR (RGBE) Equirectangular
+rgbeLoader.load("/environmentMaps/0/2k.hdr", (environmentMap) => {
+  environmentMap.mapping = THREE.EquirectangularReflectionMapping;
+
+  scene.background = environmentMap;
+  scene.environment = environmentMap;
+
+  console.log(environmentMap);
+});
 
 /**
  * Torus Knot
